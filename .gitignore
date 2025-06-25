@@ -172,7 +172,7 @@ public/assets/*.webp
 public/assets/*.json
 
 # API Keys and sensitive data
-config.js
+# config.js
 secrets.json
 *.key
 *.pem
