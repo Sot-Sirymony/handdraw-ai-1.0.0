@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GptApp1 - AI Hand Drawing Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-hand-paper"></i>
+                <h1>GptApp1</h1>
+            </div>
+            <p class="subtitle">AI-Powered Hand Drawing Generator</p>
+        </header>
+
+        <main class="main-content">
+            <div class="generator-card">
+                <div class="input-section">
+                    <h2>Generate Hand Drawing</h2>
+                    
+                    <div class="form-group">
+                        <label for="prompt">Describe the hand you want:</label>
+                        <textarea 
+                            id="prompt" 
+                            placeholder="e.g., fingers open, pointing gesture, holding a pen, peace sign..."
+                            rows="3"
+                        ></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="style">Art Style:</label>
+                            <select id="style">
+                                <option value="realistic">Realistic</option>
+                                <option value="japanese">Japanese Manga</option>
+                                <option value="anime">Anime</option>
+                                <option value="sketch">Sketch</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="size">Image Size:</label>
+                            <select id="size">
+                                <option value="256x256">Small (256x256)</option>
+                                <option value="512x512" selected>Medium (512x512)</option>
+                                <option value="1024x1024">Large (1024x1024)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="generateBtn" class="generate-btn">
+                        <i class="fas fa-magic"></i>
+                        Generate Hand Drawing
+                    </button>
+                </div>
+
+                <div class="result-section" id="resultSection" style="display: none;">
+                    <h3>Generated Image</h3>
+                    <div class="image-container">
+                        <img id="generatedImage" alt="Generated hand drawing">
+                    </div>
+                    <div class="image-actions">
+                        <button id="downloadBtn" class="action-btn">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                        <button id="saveToAssetsBtn" class="action-btn">
+                            <i class="fas fa-folder-plus"></i>
+                            Save to Assets
+                        </button>
+                        <button id="regenerateBtn" class="action-btn">
+                            <i class="fas fa-redo"></i>
+                            Regenerate
+                        </button>
+                    </div>
+                    <div class="prompt-info">
+                        <strong>Generated with prompt:</strong>
+                        <p id="generatedPrompt"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="examples-section">
+                <h3>Example Prompts</h3>
+                <div class="example-grid">
+                    <div class="example-card" data-prompt="fingers open, palm facing up">
+                        <i class="fas fa-hand-paper"></i>
+                        <span>Open palm</span>
+                    </div>
+                    <div class="example-card" data-prompt="pointing index finger">
+                        <i class="fas fa-hand-point-up"></i>
+                        <span>Pointing gesture</span>
+                    </div>
+                    <div class="example-card" data-prompt="peace sign, victory gesture">
+                        <i class="fas fa-hand-peace"></i>
+                        <span>Peace sign</span>
+                    </div>
+                    <div class="example-card" data-prompt="holding a pen, writing position">
+                        <i class="fas fa-pen"></i>
+                        <span>Holding pen</span>
+                    </div>
+                    <div class="example-card" data-prompt="thumbs up gesture">
+                        <i class="fas fa-thumbs-up"></i>
+                        <span>Thumbs up</span>
+                    </div>
+                    <div class="example-card" data-prompt="fist closed, strong grip">
+                        <i class="fas fa-fist-raised"></i>
+                        <span>Closed fist</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Generating your hand drawing...</p>
+                <p class="loading-subtitle">This may take a few moments</p>
+            </div>
+        </div>
+
+        <div id="notification" class="notification" style="display: none;"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
