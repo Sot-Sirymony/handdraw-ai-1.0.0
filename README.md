@@ -91,8 +91,222 @@ The OpenAI API key is already configured in `config.js`:
 
 ```javascript
 module.exports = {
-  OPENAI_API_KEY: 'your-api-key-here',
-  PORT: 3000
+    // API Configuration
+    PORT: 3000,
+    
+    // Default Generation Settings
+    defaults: {
+        // Style defaults - empty to allow user choice
+        style: '', // Options: 'realistic', 'japanese', 'anime', 'sketch'
+        
+        // Size defaults - empty to allow user choice
+        size: '', // Options: '256x256', '512x512', '1024x1024'
+        
+        // 2D Drawing Configuration
+        dimension: '', // Default to empty to allow user choice
+        drawingType: 'hand_drawing', // Type of drawing to generate
+        
+        // Text and Prompt Configuration
+        defaultPrompt: '', // Empty default prompt
+        promptPrefix: '', // No prefix by default
+        promptSuffix: '', // No suffix by default
+        
+        // Quality and Style Settings
+        quality: '', // Options: 'standard', 'hd'
+        styleModifiers: {
+            realistic: 'realistic, detailed, soft lighting',
+            japanese: 'Japanese manga style, clean lines',
+            anime: 'anime-style, vibrant colors',
+            sketch: 'pencil sketch, artistic style'
+        },
+        
+        // Content Safety
+        contentFilter: 'strict', // Options: 'strict', 'moderate', 'low'
+        
+        // Generation Settings
+        numberOfImages: 1, // Number of images to generate per request
+        responseFormat: 'url' // Options: 'url', 'b64_json'
+    },
+    
+    // Available Styles Configuration
+    styles: [
+        { 
+            id: 'realistic', 
+            name: 'Realistic', 
+            description: 'Photorealistic hand drawing',
+            default: true
+        },
+        { 
+            id: 'japanese', 
+            name: 'Japanese Manga', 
+            description: 'Japanese manga style hand'
+        },
+        { 
+            id: 'anime', 
+            name: 'Anime', 
+            description: 'Anime-style hand drawing'
+        },
+        { 
+            id: 'sketch', 
+            name: 'Sketch', 
+            description: 'Pencil sketch style'
+        }
+    ],
+    
+    // Available Sizes Configuration
+    sizes: [
+        { 
+            id: '256x256', 
+            name: 'Small (256x256)',
+            description: 'Small size, faster generation'
+        },
+        { 
+            id: '512x512', 
+            name: 'Medium (512x512)',
+            description: 'Standard size, good quality',
+            default: true
+        },
+        { 
+            id: '1024x1024', 
+            name: 'Square (1024x1024)',
+            description: 'Standard square size, high quality',
+            default: true
+        },
+        { 
+            id: '1792x1024', 
+            name: 'Landscape (1792x1024)',
+            description: 'Wide landscape format'
+        },
+        { 
+            id: '1024x1792', 
+            name: 'Portrait (1024x1792)',
+            description: 'Tall portrait format'
+        }
+    ],
+    
+    // Text Templates for Different Scenarios
+    textTemplates: {
+        hero: '2d character hero',
+        hand: 'A detailed hand drawing',
+        gesture: 'A hand gesture drawing',
+        holding: 'A hand holding an object',
+        pointing: 'A pointing hand',
+        open: 'An open palm',
+        closed: 'A closed fist',
+        artistic: 'An artistic hand drawing',
+        simple: 'A simple hand sketch',
+        character: '2d character design',
+        hero_pose: '2d character hero in action pose',
+        hero_portrait: '2d character hero portrait'
+    },
+    
+    // Character Properties for Character Builder
+    characterProperties: {
+        male: {
+            hair: [
+                'short black hair',
+                'long brown hair',
+                'curly dark hair',
+                'spiky blonde hair',
+                'short black spiky long hair',
+                'messy brown hair',
+                'slicked back black hair',
+                'wavy red hair'
+            ],
+            eyes: [
+                'brown eyes',
+                'blue eyes',
+                'green eyes',
+                'dark eyes',
+                'hazel eyes',
+                'gray eyes',
+                'amber eyes'
+            ],
+            build: [
+                'muscular build',
+                'athletic build',
+                'slim build',
+                'average build',
+                'strong build',
+                'lean build'
+            ],
+            clothing: [
+                'battle gear',
+                'casual clothes',
+                'formal attire',
+                'armor',
+                'tunic and pants',
+                'modern clothing',
+                'fantasy armor',
+                'simple tunic'
+            ],
+            pose: [
+                'heroic pose',
+                'action pose',
+                'standing pose',
+                'fighting stance',
+                'casual pose',
+                'determined pose',
+                'ready stance'
+            ]
+        },
+        female: {
+            hair: [
+                'long black hair',
+                'short brown hair',
+                'curly blonde hair',
+                'wavy red hair',
+                'pixie cut',
+                'braided hair',
+                'messy bun',
+                'straight dark hair'
+            ],
+            eyes: [
+                'brown eyes',
+                'blue eyes',
+                'green eyes',
+                'dark eyes',
+                'hazel eyes',
+                'gray eyes',
+                'amber eyes'
+            ],
+            build: [
+                'slim build',
+                'athletic build',
+                'average build',
+                'petite build',
+                'strong build',
+                'graceful build'
+            ],
+            clothing: [
+                'battle gear',
+                'casual dress',
+                'formal gown',
+                'armor',
+                'tunic and skirt',
+                'modern clothing',
+                'fantasy armor',
+                'simple dress'
+            ],
+            pose: [
+                'heroic pose',
+                'action pose',
+                'standing pose',
+                'fighting stance',
+                'casual pose',
+                'determined pose',
+                'graceful pose'
+            ]
+        }
+    },
+    
+    // File Management Settings
+    fileManagement: {
+        autoSave: true, // Automatically save generated images
+        assetsDirectory: 'public/assets',
+        filenameFormat: 'hand_drawing_{prompt}_{timestamp}.png',
+        maxFilenameLength: 50
+    }
 };
 ```
 
