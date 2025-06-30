@@ -114,41 +114,92 @@ app.post('/api/test-generate', async (req, res) => {
   }
 });
 
-// API endpoint to generate hand drawing images
+// API endpoint to generate hand drawing images using DALL-E 3
 app.post('/api/generate-image', async (req, res) => {
   try {
-    const { prompt, style = 'realistic', size = '512x512' } = req.body;
+    // Use config defaults with request body overrides, but allow empty values
+    const { 
+      prompt, 
+      style = config.defaults.style, 
+      size = config.defaults.size,
+      dimension = config.defaults.dimension,
+      quality = config.defaults.quality,
+      numberOfImages = config.defaults.numberOfImages,
+      useChatGPT = false // New option to enhance prompts with ChatGPT 4o
+    } = req.body;
     
-    console.log('Generate image request:', { prompt, style, size });
+    console.log('Generate image request:', { prompt, style, size, dimension, quality, numberOfImages, useChatGPT });
     
-    if (!prompt) {
+    // Use default prompt if none provided
+    const finalPrompt = prompt || config.defaults.defaultPrompt;
+    
+    if (!finalPrompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    // Construct the full prompt based on style - using simpler, safer prompts
-    let fullPrompt = '';
-    if (style === 'japanese') {
-      fullPrompt = `A hand drawing in Japanese manga style, ${prompt}, clean lines, white background`;
-    } else if (style === 'anime') {
-      fullPrompt = `An anime-style hand drawing, ${prompt}, clean lines, white background`;
-    } else if (style === 'sketch') {
-      fullPrompt = `A pencil sketch of a hand, ${prompt}, artistic style, white background`;
-    } else {
-      fullPrompt = `A realistic hand drawing, ${prompt}, soft lighting, white background`;
+    // Check if this is a detailed manual description (more than 50 characters)
+    const isDetailedManualDescription = finalPrompt.length > 50;
+    
+    // Build the final prompt based on user input and selections
+    let fullPrompt = finalPrompt;
+    
+    // Only add style modifiers if style is selected and not empty
+    if (style && style.trim() !== '') {
+      const styleModifiers = {
+        'realistic': 'realistic, detailed, soft lighting',
+        'japanese': 'Japanese manga style, clean lines',
+        'anime': 'anime style, vibrant colors',
+        'sketch': 'sketch style, pencil drawing',
+        'minecraft': 'Minecraft style, blocky and pixelated',
+        'cartoon': 'cartoon style, simple and clean'
+      };
+      
+      if (styleModifiers[style]) {
+        fullPrompt += `, ${styleModifiers[style]}`;
+      }
+    }
+    
+    // Only add dimension if specified and not empty
+    if (dimension && dimension.trim() !== '') {
+      fullPrompt += `, ${dimension} drawing`;
     }
 
-    console.log('Full prompt:', fullPrompt);
+    // Optionally enhance prompt with ChatGPT 4o
+    if (useChatGPT && isDetailedManualDescription) {
+      try {
+        console.log('Enhancing prompt with ChatGPT 4o...');
+        const enhancedPrompt = await enhancePromptWithChatGPT(fullPrompt);
+        if (enhancedPrompt) {
+          fullPrompt = enhancedPrompt;
+          console.log('Enhanced prompt:', fullPrompt);
+        }
+      } catch (error) {
+        console.error('ChatGPT enhancement failed, using original prompt:', error.message);
+      }
+    }
+
+    console.log('Final prompt for image generation:', fullPrompt);
     console.log('API Key (first 10 chars):', config.OPENAI_API_KEY.substring(0, 10) + '...');
 
-    // Use the working format - no model specification, simpler prompts
+    // Use DALL-E 3 for better quality image generation
     const requestBody = {
+      model: "dall-e-3", // Using DALL-E 3 instead of DALL-E 2
       prompt: fullPrompt,
-      n: 1,
-      size: size,
-      response_format: "url"
+      n: 1, // DALL-E 3 only supports 1 image at a time
+      size: size || '', // Use empty if no size selected
+      response_format: 'url',
+      quality: quality || '' // Use empty if no quality selected
     };
 
-    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+    // Only add size and quality if they are not empty
+    if (!size || size.trim() === '') {
+      delete requestBody.size;
+    }
+    if (!quality || quality.trim() === '') {
+      delete requestBody.quality;
+    }
+
+    console.log('DALL-E 3 Request body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -159,16 +210,28 @@ app.post('/api/generate-image', async (req, res) => {
       body: JSON.stringify(requestBody)
     });
 
-    console.log('OpenAI Response Status:', response.status);
+    console.log('DALL-E 3 Response Status:', response.status);
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API Error Details:', JSON.stringify(errorData, null, 2));
+      console.error('DALL-E 3 API Error Details:', JSON.stringify(errorData, null, 2));
       
       // Try to provide more helpful error messages
       let errorMessage = 'Failed to generate image';
       if (errorData.error && errorData.error.type === 'image_generation_user_error') {
         errorMessage = 'The prompt may contain content that violates OpenAI\'s content policy. Please try a different description.';
+      }
+      
+      if (response.status === 429) {
+        console.log('Rate limit hit, providing user-friendly message');
+        return res.status(429).json({
+          error: 'OpenAI rate limit reached. Please wait a few minutes and try again.',
+          details: {
+            error: errorData.error,
+            status: response.status,
+            statusText: response.statusText
+          }
+        });
       }
       
       return res.status(response.status).json({ 
@@ -180,46 +243,71 @@ app.post('/api/generate-image', async (req, res) => {
     }
 
     const data = await response.json();
-    console.log('OpenAI Response Data:', JSON.stringify(data, null, 2));
+    console.log('DALL-E 3 Response Data:', JSON.stringify(data, null, 2));
     
     const imageUrl = data.data[0].url;
 
-    // --- Automatically save the image to assets directory ---
-    const assetsDir = path.join(__dirname, 'public', 'assets');
-    if (!fs.existsSync(assetsDir)) {
-      fs.mkdirSync(assetsDir, { recursive: true });
-    }
-    const sanitizedPrompt = fullPrompt.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_').substring(0, 50);
-    const timestampStr = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `hand_drawing_${sanitizedPrompt}_${timestampStr}.png`;
-    const filepath = path.join(assetsDir, filename);
+    // --- Automatically save the image to assets directory if enabled ---
+    let savedFilename = null;
+    let metadata = null;
+    
+    if (config.fileManagement.autoSave) {
+      const assetsDir = path.join(__dirname, config.fileManagement.assetsDirectory);
+      if (!fs.existsSync(assetsDir)) {
+        fs.mkdirSync(assetsDir, { recursive: true });
+      }
+      
+      const sanitizedPrompt = finalPrompt.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_').substring(0, config.fileManagement.maxFilenameLength);
+      const timestampStr = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = config.fileManagement.filenameFormat
+        .replace('{prompt}', sanitizedPrompt)
+        .replace('{timestamp}', timestampStr);
+      const filepath = path.join(assetsDir, filename);
 
-    // Download the image
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error('Failed to download image');
-    }
-    const imageBuffer = await imageResponse.buffer();
-    fs.writeFileSync(filepath, imageBuffer);
+      // Download the image
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error('Failed to download image');
+      }
+      const imageBuffer = await imageResponse.buffer();
+      fs.writeFileSync(filepath, imageBuffer);
 
-    // Create metadata file
-    const metadata = {
-      filename: filename,
-      originalUrl: imageUrl,
-      prompt: fullPrompt,
-      timestamp: new Date().toISOString(),
-      savedAt: new Date().toISOString()
-    };
-    const metadataPath = path.join(assetsDir, `${filename}.json`);
-    fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
-    console.log(`Image automatically saved to assets: ${filename}`);
+      // Create metadata file
+      metadata = {
+        filename: filename,
+        originalUrl: imageUrl,
+        prompt: fullPrompt,
+        userPrompt: finalPrompt,
+        style: style || '',
+        size: size || '',
+        dimension: dimension || '',
+        quality: quality || '',
+        isDetailedDescription: isDetailedManualDescription,
+        model: 'dall-e-3',
+        enhancedWithChatGPT: useChatGPT,
+        timestamp: new Date().toISOString(),
+        savedAt: new Date().toISOString()
+      };
+      const metadataPath = path.join(assetsDir, `${filename}.json`);
+      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+      console.log(`Image automatically saved to assets: ${filename}`);
+      savedFilename = filename;
+    }
     // --- End auto-save ---
 
     res.json({ 
       success: true, 
-      imageUrl: `/assets/${filename}`,
+      imageUrl: savedFilename ? `/assets/${savedFilename}` : imageUrl,
       prompt: fullPrompt,
-      localFile: `/assets/${filename}`,
+      userPrompt: finalPrompt,
+      style: style || '',
+      size: size || '',
+      dimension: dimension || '',
+      quality: quality || '',
+      isDetailedDescription: isDetailedManualDescription,
+      model: 'dall-e-3',
+      enhancedWithChatGPT: useChatGPT,
+      localFile: savedFilename ? `/assets/${savedFilename}` : null,
       metadata: metadata
     });
 
@@ -232,6 +320,48 @@ app.post('/api/generate-image', async (req, res) => {
     });
   }
 });
+
+// Helper function to enhance prompts with ChatGPT 4o
+async function enhancePromptWithChatGPT(originalPrompt) {
+  try {
+    const requestBody = {
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert at creating detailed, descriptive prompts for AI image generation. Enhance the user's prompt to be more specific, detailed, and effective for generating high-quality hand-drawn style images. Keep the core meaning but add relevant details about style, composition, lighting, and artistic elements."
+        },
+        {
+          role: "user",
+          content: `Please enhance this image generation prompt to be more detailed and effective: "${originalPrompt}"`
+        }
+      ],
+      max_tokens: 500,
+      temperature: 0.7
+    };
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      throw new Error(`ChatGPT API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const enhancedPrompt = data.choices[0].message.content.trim();
+    
+    return enhancedPrompt;
+  } catch (error) {
+    console.error('Error enhancing prompt with ChatGPT:', error);
+    return null;
+  }
+}
 
 // API endpoint to save image to assets folder
 app.post('/api/save-to-assets', async (req, res) => {
@@ -295,26 +425,27 @@ app.post('/api/save-to-assets', async (req, res) => {
   }
 });
 
+// API endpoint to get default configuration
+app.get('/api/config', (req, res) => {
+  res.json({
+    defaults: config.defaults,
+    textTemplates: config.textTemplates,
+    characterProperties: config.characterProperties,
+    fileManagement: config.fileManagement
+  });
+});
+
 // API endpoint to get available styles
 app.get('/api/styles', (req, res) => {
   res.json({
-    styles: [
-      { id: 'realistic', name: 'Realistic', description: 'Photorealistic hand drawing' },
-      { id: 'japanese', name: 'Japanese Manga', description: 'Japanese manga style hand' },
-      { id: 'anime', name: 'Anime', description: 'Anime-style hand drawing' },
-      { id: 'sketch', name: 'Sketch', description: 'Pencil sketch style' }
-    ]
+    styles: config.styles
   });
 });
 
 // API endpoint to get available sizes
 app.get('/api/sizes', (req, res) => {
   res.json({
-    sizes: [
-      { id: '256x256', name: 'Small (256x256)' },
-      { id: '512x512', name: 'Medium (512x512)', default: true },
-      { id: '1024x1024', name: 'Large (1024x1024)' }
-    ]
+    sizes: config.sizes
   });
 });
 

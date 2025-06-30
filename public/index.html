@@ -30,6 +30,88 @@
                             placeholder="e.g., fingers open, pointing gesture, holding a pen, peace sign..."
                             rows="3"
                         ></textarea>
+                        <small class="form-help">
+                            💡 <strong>Tip:</strong> For detailed descriptions (50+ characters), your text will be used exactly as written. 
+                            For short descriptions, the system will add helpful context.
+                        </small>
+                    </div>
+
+                    <!-- Character Property Selection System -->
+                    <div class="character-builder">
+                        <h3>Character Builder</h3>
+                        
+                        <!-- Gender Selection -->
+                        <div class="form-group">
+                            <label for="characterGender">Character Gender:</label>
+                            <select id="characterGender">
+                                <option value="">-- Select Gender --</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+
+                        <!-- Character Properties (hidden until gender is selected) -->
+                        <div id="characterProperties" class="character-properties" style="display: none;">
+                            <div class="properties-grid">
+                                <div class="form-group">
+                                    <label for="hairStyle">Hair Style:</label>
+                                    <select id="hairStyle">
+                                        <option value="">-- Select Hair --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="eyeColor">Eye Color:</label>
+                                    <select id="eyeColor">
+                                        <option value="">-- Select Eyes --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="bodyBuild">Body Build:</label>
+                                    <select id="bodyBuild">
+                                        <option value="">-- Select Build --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="clothingStyle">Clothing:</label>
+                                    <select id="clothingStyle">
+                                        <option value="">-- Select Clothing --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="characterPose">Pose:</label>
+                                    <select id="characterPose">
+                                        <option value="">-- Select Pose --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Generated Character Description -->
+                            <div class="form-group">
+                                <label for="generatedDescription">Generated Description:</label>
+                                <textarea 
+                                    id="generatedDescription" 
+                                    placeholder="Character description will be generated here..."
+                                    rows="3"
+                                    readonly
+                                ></textarea>
+                            </div>
+
+                            <!-- Character Builder Actions -->
+                            <div class="character-actions">
+                                <button type="button" id="clearCharacterBtn" class="action-btn secondary">
+                                    <i class="fas fa-undo"></i>
+                                    Clear Character
+                                </button>
+                                <button type="button" id="useCharacterBtn" class="action-btn primary">
+                                    <i class="fas fa-magic"></i>
+                                    Use This Character
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-row">
@@ -51,6 +133,47 @@
                                 <option value="1024x1024">Large (1024x1024)</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dimension">Dimension:</label>
+                            <select id="dimension">
+                                <option value="2d" selected>2D Drawing</option>
+                                <option value="3d">3D Rendering</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="quality">Quality:</label>
+                            <select id="quality">
+                                <option value="standard" selected>Standard</option>
+                                <option value="hd">HD</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="textTemplate">Quick Templates:</label>
+                        <select id="textTemplate">
+                            <option value="">-- Select a template --</option>
+                            <option value="minecraft">2d image character like minecraft</option>
+                            <option value="minecraft_hero">minecraft style 2d character hero</option>
+                            <option value="pixel_character">pixelated 2d character</option>
+                            <option value="blocky_character">blocky minecraft style character</option>
+                            <option value="hero">2d character hero</option>
+                            <option value="character">2d character design</option>
+                            <option value="hero_pose">2d character hero in action pose</option>
+                            <option value="hero_portrait">2d character hero portrait</option>
+                            <option value="hand">A detailed hand drawing</option>
+                            <option value="gesture">A hand gesture drawing</option>
+                            <option value="holding">A hand holding an object</option>
+                            <option value="pointing">A pointing hand</option>
+                            <option value="open">An open palm</option>
+                            <option value="closed">A closed fist</option>
+                            <option value="artistic">An artistic hand drawing</option>
+                            <option value="simple">A simple hand sketch</option>
+                        </select>
                     </div>
 
                     <button id="generateBtn" class="generate-btn">
@@ -88,6 +211,30 @@
             <div class="examples-section">
                 <h3>Example Prompts</h3>
                 <div class="example-grid">
+                    <div class="example-card" data-prompt="2d image character like minecraft">
+                        <i class="fas fa-cube"></i>
+                        <span>Minecraft Character</span>
+                    </div>
+                    <div class="example-card" data-prompt="minecraft style 2d character hero">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Minecraft Hero</span>
+                    </div>
+                    <div class="example-card" data-prompt="pixelated 2d character">
+                        <i class="fas fa-th"></i>
+                        <span>Pixel Character</span>
+                    </div>
+                    <div class="example-card" data-prompt="2d character hero">
+                        <i class="fas fa-user-ninja"></i>
+                        <span>2D Character Hero</span>
+                    </div>
+                    <div class="example-card" data-prompt="2d character hero in action pose">
+                        <i class="fas fa-running"></i>
+                        <span>Hero Action Pose</span>
+                    </div>
+                    <div class="example-card" data-prompt="2d character hero portrait">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Hero Portrait</span>
+                    </div>
                     <div class="example-card" data-prompt="fingers open, palm facing up">
                         <i class="fas fa-hand-paper"></i>
                         <span>Open palm</span>
@@ -111,6 +258,32 @@
                     <div class="example-card" data-prompt="fist closed, strong grip">
                         <i class="fas fa-fist-raised"></i>
                         <span>Closed fist</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Current Configuration</h3>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <strong>Default Style:</strong>
+                        <span id="configStyle">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Default Size:</strong>
+                        <span id="configSize">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Dimension:</strong>
+                        <span id="configDimension">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Quality:</strong>
+                        <span id="configQuality">Loading...</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Default Prompt:</strong>
+                        <span id="configPrompt">Loading...</span>
                     </div>
                 </div>
             </div>
